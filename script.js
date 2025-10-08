@@ -56,6 +56,9 @@ class LetterExplosion {
       console.log("Audio not available:", e);
     }
 
+    // Store original HTML for game reset
+    this.originalGameHTML = null;
+
     this.init();
   }
 
@@ -69,6 +72,14 @@ class LetterExplosion {
   }
 
   setupElements() {
+    // Store original game HTML on first setup (before any modifications)
+    if (!this.originalGameHTML) {
+      const headings = document.querySelectorAll("h1, h2, h3, h4, h5, h6");
+      this.originalGameHTML = Array.from(headings).map((h) =>
+        h.cloneNode(true)
+      );
+    }
+
     // Find all heading elements
     const headings = document.querySelectorAll("h1, h2, h3, h4, h5, h6");
 
@@ -171,6 +182,42 @@ class LetterExplosion {
       -webkit-touch-callout: none;
     `;
 
+    // New Game button
+    const newGameButton = document.createElement("button");
+    newGameButton.className = "settings-button";
+    newGameButton.innerHTML = "🔄";
+    newGameButton.title = "New Game";
+    newGameButton.style.cssText = `
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+      cursor: pointer;
+      opacity: 0.4;
+      transition: opacity 0.2s ease, transform 0.1s ease;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+
+    newGameButton.addEventListener("mouseenter", () => {
+      newGameButton.style.opacity = "0.8";
+      newGameButton.style.transform = "scale(1.1)";
+    });
+
+    newGameButton.addEventListener("mouseleave", () => {
+      newGameButton.style.opacity = "0.4";
+      newGameButton.style.transform = "scale(1)";
+    });
+
+    newGameButton.addEventListener("click", () => {
+      this.resetGame();
+      this.playSound("toggle");
+    });
+
     // Sound toggle button
     const soundButton = document.createElement("button");
     soundButton.className = "settings-button";
@@ -209,11 +256,45 @@ class LetterExplosion {
       this.playSound("toggle");
     });
 
+    settingsContainer.appendChild(newGameButton);
     settingsContainer.appendChild(soundButton);
     document.body.appendChild(settingsContainer);
   }
 
   // Haptic feedback removed
+
+  // Reset game to initial state
+  resetGame() {
+    console.log("🔄 Resetting game...");
+
+    // Clear game state
+    this.matchingState.selectedElement = null;
+    this.matchingState.matchedPairs.clear();
+
+    // Remove all existing headings from the body
+    const existingHeadings = document.querySelectorAll(
+      "h1, h2, h3, h4, h5, h6"
+    );
+    existingHeadings.forEach((heading) => {
+      if (heading.parentNode) {
+        heading.parentNode.removeChild(heading);
+      }
+    });
+
+    // Restore original headings from clones
+    if (this.originalGameHTML) {
+      this.originalGameHTML.forEach((originalHeading) => {
+        const newHeading = originalHeading.cloneNode(true);
+        document.body.appendChild(newHeading);
+
+        // Set up drag, click, and position for the restored element
+        this.setupDragAndClick(newHeading);
+        this.positionRandomlyOnLoad(newHeading);
+      });
+    }
+
+    console.log("✅ Game reset complete!");
+  }
 
   // Sound system using Web Audio API (pure JavaScript, no files needed!)
   async playSound(type) {
