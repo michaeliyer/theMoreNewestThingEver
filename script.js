@@ -41,9 +41,10 @@ class LetterExplosion {
       "🌟 Incredible! You're a star! 🌟",
     ];
 
-    // Settings for sound
+    // Settings for sound and speech
     this.settings = {
       soundEnabled: localStorage.getItem("soundEnabled") !== "false", // Default true
+      speechEnabled: localStorage.getItem("speechEnabled") !== "false", // Default true
     };
 
     // Create shared audio context for better iOS compatibility
@@ -58,6 +59,9 @@ class LetterExplosion {
 
     // Store original HTML for game reset
     this.originalGameHTML = null;
+
+    // Speech synthesis for reading messages
+    this.speechSynthesis = window.speechSynthesis;
 
     this.init();
   }
@@ -256,12 +260,120 @@ class LetterExplosion {
       this.playSound("toggle");
     });
 
+    // Speech toggle button
+    const speechButton = document.createElement("button");
+    speechButton.className = "settings-button";
+    speechButton.innerHTML = this.settings.speechEnabled ? "🗣️" : "🔇";
+    speechButton.title = "Toggle Voice";
+    speechButton.style.cssText = `
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+      cursor: pointer;
+      opacity: 0.4;
+      transition: opacity 0.2s ease, transform 0.1s ease;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+
+    speechButton.addEventListener("mouseenter", () => {
+      speechButton.style.opacity = "0.8";
+      speechButton.style.transform = "scale(1.1)";
+    });
+
+    speechButton.addEventListener("mouseleave", () => {
+      speechButton.style.opacity = "0.4";
+      speechButton.style.transform = "scale(1)";
+    });
+
+    speechButton.addEventListener("click", () => {
+      this.settings.speechEnabled = !this.settings.speechEnabled;
+      localStorage.setItem("speechEnabled", this.settings.speechEnabled);
+      speechButton.innerHTML = this.settings.speechEnabled ? "🗣️" : "🔇";
+      this.playSound("toggle");
+      if (this.settings.speechEnabled) {
+        this.speak("Voice enabled!");
+      }
+    });
+
     settingsContainer.appendChild(newGameButton);
     settingsContainer.appendChild(soundButton);
+    settingsContainer.appendChild(speechButton);
     document.body.appendChild(settingsContainer);
   }
 
   // Haptic feedback removed
+
+  // Text-to-speech for messages (kid's voice)
+  speak(text) {
+    if (!this.settings.speechEnabled) return;
+    if (!this.speechSynthesis) return;
+
+    // Cancel any ongoing speech
+    this.speechSynthesis.cancel();
+
+    // Clean up text - remove emojis for more natural speech
+    const cleanText = text.replace(/[🎉🏆⭐🌟💫🔥🎯🌈🎨🚀✨💥]/g, "").trim();
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+
+    // More natural voice settings - less robotic
+    utterance.pitch = 1.3; // More moderate pitch (less extreme = more natural)
+    utterance.rate = 0.95; // Slightly slower = more expressive and clear
+    utterance.volume = 0.9; // Good volume
+
+    // Try to select the highest quality, most natural-sounding voice
+    const voices = this.speechSynthesis.getVoices();
+
+    // Prioritize premium/natural voices that come with the OS
+    // These tend to sound much more human
+    const preferredVoiceNames = [
+      "Samantha (Enhanced)", // macOS enhanced - very natural
+      "Samantha", // macOS - natural and friendly
+      "Alex", // macOS - very natural male voice
+      "Siri Female", // iOS/macOS Siri voice
+      "Karen", // macOS - warm and friendly
+      "Moira", // macOS - natural Irish accent
+      "Tessa", // macOS - South African, very natural
+      "Google US English", // Chrome - good quality
+      "Microsoft Zira", // Windows - natural
+    ];
+
+    let selectedVoice = null;
+
+    // Try to find a preferred voice (exact or partial match)
+    for (const voiceName of preferredVoiceNames) {
+      selectedVoice = voices.find((voice) => voice.name.includes(voiceName));
+      if (selectedVoice) {
+        console.log("🗣️ Selected voice:", selectedVoice.name);
+        break;
+      }
+    }
+
+    // Fallback: prioritize local/premium voices (they sound better)
+    if (!selectedVoice) {
+      selectedVoice = voices.find(
+        (voice) => voice.localService && voice.lang.startsWith("en")
+      );
+    }
+
+    // Fallback: any English voice
+    if (!selectedVoice) {
+      selectedVoice = voices.find((voice) => voice.lang.startsWith("en"));
+    }
+
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+
+    this.speechSynthesis.speak(utterance);
+    console.log("🗣️ Speaking:", cleanText);
+  }
 
   // Reset game to initial state
   resetGame() {
@@ -769,6 +881,7 @@ class LetterExplosion {
     const message =
       this.matchMessages[Math.floor(Math.random() * this.matchMessages.length)];
     this.displayFloatingMessage(message, "#4ecdc4");
+    this.speak(message);
   }
 
   showVictoryMessage() {
@@ -778,6 +891,7 @@ class LetterExplosion {
       ];
     this.displayFloatingMessage(message, "#feca57", true);
     this.playSound("victory");
+    this.speak(message);
     this.createVictoryConfetti();
   }
 
