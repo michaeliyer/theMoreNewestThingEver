@@ -63,6 +63,9 @@ class LetterExplosion {
     // Speech synthesis for reading messages
     this.speechSynthesis = window.speechSynthesis;
 
+    // Track positioned elements to prevent overlap
+    this.positionedElements = [];
+
     this.init();
   }
 
@@ -382,6 +385,9 @@ class LetterExplosion {
     // Clear game state
     this.matchingState.selectedElement = null;
     this.matchingState.matchedPairs.clear();
+
+    // Clear positioned elements tracking
+    this.positionedElements = [];
 
     // Remove all existing headings from the body
     const existingHeadings = document.querySelectorAll(
@@ -996,12 +1002,21 @@ class LetterExplosion {
   }
 
   positionRandomlyOnLoad(element) {
-    // Calculate random position for initial page load
-    const newPosition = this.calculateRandomPosition(element);
+    // Calculate random position without overlap
+    const newPosition = this.calculateRandomPositionNoOverlap(element);
 
     // Apply position immediately (no animation on load)
     element.style.top = `${newPosition.top}px`;
     element.style.left = `${newPosition.left}px`;
+
+    // Track this position to prevent future overlaps
+    this.positionedElements.push({
+      element: element,
+      top: newPosition.top,
+      left: newPosition.left,
+      width: element.offsetWidth,
+      height: element.offsetHeight,
+    });
 
     // Randomly choose layout orientation
     const orientationChoice = Math.random();
@@ -1233,6 +1248,65 @@ class LetterExplosion {
     const top = Math.max(padding, Math.random() * maxTop);
     const left = Math.max(padding, Math.random() * maxLeft);
 
+    return { top, left };
+  }
+
+  calculateRandomPositionNoOverlap(element) {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const elementWidth = element.offsetWidth;
+    const elementHeight = element.offsetHeight;
+
+    // Calculate safe bounds (with padding)
+    const padding = 20;
+    const minSpacing = 15; // Minimum space between elements
+    const maxTop = viewportHeight - elementHeight - padding;
+    const maxLeft = viewportWidth - elementWidth - padding;
+
+    let attempts = 0;
+    const maxAttempts = 100; // Prevent infinite loop
+
+    while (attempts < maxAttempts) {
+      // Generate random position within safe bounds
+      const top = Math.max(padding, Math.random() * maxTop);
+      const left = Math.max(padding, Math.random() * maxLeft);
+
+      // Check if this position overlaps with any existing elements
+      const hasOverlap = this.positionedElements.some((positioned) => {
+        // Calculate boundaries with spacing
+        const newRight = left + elementWidth + minSpacing;
+        const newBottom = top + elementHeight + minSpacing;
+        const existingRight = positioned.left + positioned.width + minSpacing;
+        const existingBottom = positioned.top + positioned.height + minSpacing;
+
+        // Check for overlap (AABB collision detection)
+        const overlaps = !(
+          newRight < positioned.left ||
+          left > existingRight ||
+          newBottom < positioned.top ||
+          top > existingBottom
+        );
+
+        return overlaps;
+      });
+
+      // If no overlap, use this position
+      if (!hasOverlap) {
+        return { top, left };
+      }
+
+      attempts++;
+    }
+
+    // If we couldn't find a non-overlapping position after max attempts,
+    // just return a random position (better than crashing)
+    console.warn(
+      "Could not find non-overlapping position after",
+      maxAttempts,
+      "attempts"
+    );
+    const top = Math.max(padding, Math.random() * maxTop);
+    const left = Math.max(padding, Math.random() * maxLeft);
     return { top, left };
   }
 
