@@ -251,6 +251,19 @@ class LetterExplosion {
           this.createTone(audioContext, 600, now, 0.03, 0.08, "square");
           break;
 
+        case "error":
+          // Quick sawtooth buzzer for incorrect match
+          this.createTone(audioContext, 180, now, 0.08, 0.15, "sawtooth");
+          this.createTone(
+            audioContext,
+            150,
+            now + 0.08,
+            0.08,
+            0.12,
+            "sawtooth"
+          );
+          break;
+
         default:
           // Generic beep
           this.createTone(audioContext, 440, now, 0.1, 0.1, "sine");
@@ -355,16 +368,61 @@ class LetterExplosion {
   }
 
   setupDragAndClick(heading) {
-    // Mouse events
+    // Mouse events for desktop
     heading.addEventListener("mousedown", (e) => {
       e.preventDefault();
       this.startDrag(heading, e.clientX, e.clientY);
     });
 
-    // Touch events for mobile
-    heading.addEventListener("touchstart", (e) => {
-      const touch = e.touches[0];
-      this.startDrag(heading, touch.clientX, touch.clientY);
+    // Touch events for mobile - optimized for quick taps
+    let touchStartTime = 0;
+    let touchStartPos = { x: 0, y: 0 };
+    let hasMoved = false;
+
+    heading.addEventListener(
+      "touchstart",
+      (e) => {
+        touchStartTime = Date.now();
+        const touch = e.touches[0];
+        touchStartPos = { x: touch.clientX, y: touch.clientY };
+        hasMoved = false;
+      },
+      { passive: true }
+    );
+
+    heading.addEventListener(
+      "touchmove",
+      (e) => {
+        const touch = e.touches[0];
+        const deltaX = Math.abs(touch.clientX - touchStartPos.x);
+        const deltaY = Math.abs(touch.clientY - touchStartPos.y);
+
+        // If moved more than 10px, it's a drag
+        if (deltaX > 10 || deltaY > 10) {
+          hasMoved = true;
+          // Start drag if not already dragging
+          if (!this.dragState.isDragging) {
+            this.startDrag(heading, touchStartPos.x, touchStartPos.y);
+          }
+        }
+      },
+      { passive: true }
+    );
+
+    heading.addEventListener("touchend", (e) => {
+      const touchDuration = Date.now() - touchStartTime;
+
+      // Quick tap (< 300ms and no movement) = instant selection
+      if (touchDuration < 300 && !hasMoved) {
+        e.preventDefault();
+        this.haptic("light");
+        this.handleQuickClick(heading);
+      } else if (hasMoved) {
+        // Was a drag, handle normally
+        this.handleMouseUp(e);
+      }
+
+      hasMoved = false;
     });
   }
 
@@ -476,13 +534,26 @@ class LetterExplosion {
       console.log("🎉 Match found!", element.textContent);
       this.handleMatch(this.matchingState.selectedElement, element);
     } else {
-      // Not a match - deselect previous and select new
+      // Not a match - show error feedback
+      this.haptic("error");
+      this.playSound("error");
+
+      // Shake both elements briefly
+      const prevElement = this.matchingState.selectedElement;
+      prevElement.classList.add("shake-error");
+      element.classList.add("shake-error");
+
+      setTimeout(() => {
+        prevElement.classList.remove("shake-error");
+        element.classList.remove("shake-error");
+      }, 500);
+
+      // Then deselect previous and select new
       this.matchingState.selectedElement.classList.remove("selected");
       this.matchingState.selectedElement = element;
       element.classList.add("selected");
-      this.haptic("light");
-      this.playSound("select");
-      console.log("↔ Switched to:", element.textContent);
+
+      console.log("❌ Not a match. Switched to:", element.textContent);
     }
   }
 

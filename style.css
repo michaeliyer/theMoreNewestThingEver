@@ -210,6 +210,55 @@ h4.selected {
 
 /* Checkmark animation removed - using pulse only */
 
+/* Error shake animation for incorrect pairs */
+h1.shake-error,
+h2.shake-error,
+h3.shake-error,
+h4.shake-error {
+  animation: shake-error 0.5s ease-in-out;
+  -webkit-animation: shake-error 0.5s ease-in-out;
+}
+
+@keyframes shake-error {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-8px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(8px);
+  }
+}
+
+@-webkit-keyframes shake-error {
+  0%,
+  100% {
+    -webkit-transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    -webkit-transform: translateX(-8px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    -webkit-transform: translateX(8px);
+  }
+}
+
 /* Matched state */
 h1.matched,
 h2.matched,
