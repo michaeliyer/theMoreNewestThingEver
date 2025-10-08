@@ -47,6 +47,15 @@ class LetterExplosion {
       soundEnabled: localStorage.getItem("soundEnabled") !== "false", // Default true
     };
 
+    // Create shared audio context for better iOS compatibility
+    this.audioContext = null;
+    try {
+      this.audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
+    } catch (e) {
+      console.log("Audio not available:", e);
+    }
+
     this.init();
   }
 
@@ -212,67 +221,120 @@ class LetterExplosion {
   }
 
   // Sound system using Web Audio API (pure JavaScript, no files needed!)
-  playSound(type) {
+  async playSound(type) {
     if (!this.settings.soundEnabled) return;
+    if (!this.audioContext) return;
 
     try {
-      const audioContext = new (window.AudioContext ||
-        window.webkitAudioContext)();
-      const now = audioContext.currentTime;
+      // iOS Safari requires audio context to be resumed on user interaction
+      if (this.audioContext.state === "suspended") {
+        await this.audioContext.resume();
+      }
+
+      const now = this.audioContext.currentTime;
 
       switch (type) {
         case "select":
           // Quick high beep
-          this.createTone(audioContext, 800, now, 0.05, 0.1, "sine");
+          this.createTone(this.audioContext, 800, now, 0.05, 0.1, "sine");
           break;
 
         case "match":
           // Cork/suction pop sound (make it louder!)
-          this.createPopSound(audioContext, now, 0.18); // Increased volume
+          this.createPopSound(this.audioContext, now, 0.18); // Increased volume
           break;
 
         case "explosion":
           // Soft explosion whoosh (no harsh buzz)
-          this.createExplosionSound(audioContext, now);
+          this.createExplosionSound(this.audioContext, now);
           break;
 
         case "victory":
           // Epic victory fanfare - triumphant ascending melody!
           // First phrase (C-E-G)
-          this.createTone(audioContext, 523, now, 0.15, 0.25, "sine"); // C
-          this.createTone(audioContext, 659, now + 0.15, 0.15, 0.25, "sine"); // E
-          this.createTone(audioContext, 784, now + 0.3, 0.2, 0.3, "sine"); // G
+          this.createTone(this.audioContext, 523, now, 0.15, 0.25, "sine"); // C
+          this.createTone(
+            this.audioContext,
+            659,
+            now + 0.15,
+            0.15,
+            0.25,
+            "sine"
+          ); // E
+          this.createTone(this.audioContext, 784, now + 0.3, 0.2, 0.3, "sine"); // G
 
           // Second phrase (G-A-B)
-          this.createTone(audioContext, 784, now + 0.5, 0.12, 0.25, "sine"); // G
-          this.createTone(audioContext, 880, now + 0.62, 0.12, 0.25, "sine"); // A
-          this.createTone(audioContext, 988, now + 0.74, 0.15, 0.28, "sine"); // B
+          this.createTone(
+            this.audioContext,
+            784,
+            now + 0.5,
+            0.12,
+            0.25,
+            "sine"
+          ); // G
+          this.createTone(
+            this.audioContext,
+            880,
+            now + 0.62,
+            0.12,
+            0.25,
+            "sine"
+          ); // A
+          this.createTone(
+            this.audioContext,
+            988,
+            now + 0.74,
+            0.15,
+            0.28,
+            "sine"
+          ); // B
 
           // Grand finale (High C - triumphant!)
-          this.createTone(audioContext, 1047, now + 0.9, 0.4, 0.35, "sine"); // High C
+          this.createTone(
+            this.audioContext,
+            1047,
+            now + 0.9,
+            0.4,
+            0.35,
+            "sine"
+          ); // High C
 
           // Add harmony for richness
-          this.createTone(audioContext, 523, now + 0.9, 0.4, 0.2, "sine"); // Harmony C
-          this.createTone(audioContext, 784, now + 0.9, 0.4, 0.2, "sine"); // Harmony G
+          this.createTone(this.audioContext, 523, now + 0.9, 0.4, 0.2, "sine"); // Harmony C
+          this.createTone(this.audioContext, 784, now + 0.9, 0.4, 0.2, "sine"); // Harmony G
           break;
 
         case "background":
           // Big background explosion (dramatic sweep)
-          this.createTone(audioContext, 400, now, 0.3, 0.4, "triangle");
-          this.createTone(audioContext, 200, now + 0.1, 0.3, 0.3, "sawtooth");
-          this.createTone(audioContext, 100, now + 0.2, 0.2, 0.25, "sawtooth");
+          this.createTone(this.audioContext, 400, now, 0.3, 0.4, "triangle");
+          this.createTone(
+            this.audioContext,
+            200,
+            now + 0.1,
+            0.3,
+            0.3,
+            "sawtooth"
+          );
+          this.createTone(
+            this.audioContext,
+            100,
+            now + 0.2,
+            0.2,
+            0.25,
+            "sawtooth"
+          );
           break;
 
         case "toggle":
           // Soft click
-          this.createTone(audioContext, 600, now, 0.03, 0.08, "square");
+          this.createTone(this.audioContext, 600, now, 0.03, 0.08, "square");
           break;
 
         case "error":
           // Quick sawtooth buzzer for incorrect match
-          this.createTone(audioContext, 180, now, 0.08, 0.15, "sawtooth");
+          this.createTone(this.audioContext, 180, now, 0.08, 0.15, "sawtooth");
           this.createTone(
-            audioContext,
+            this.audioContext,
             150,
             now + 0.08,
             0.08,
@@ -283,7 +345,7 @@ class LetterExplosion {
 
         default:
           // Generic beep
-          this.createTone(audioContext, 440, now, 0.1, 0.1, "sine");
+          this.createTone(this.audioContext, 440, now, 0.1, 0.1, "sine");
       }
     } catch (e) {
       console.log("Audio playback not available:", e);
