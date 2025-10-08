@@ -21,8 +21,6 @@ class LetterExplosion {
       selectedElement: null,
       matchedPairs: new Set(),
       totalPairs: 0,
-      holdTimer: null,
-      isHolding: false,
     };
     this.matchMessages = [
       "You found a match! ✨",
@@ -385,18 +383,6 @@ class LetterExplosion {
     // Light haptic on touch
     this.haptic("light");
 
-    // Start hold timer for explosion (500ms hold = explosion)
-    this.matchingState.isHolding = true;
-    this.matchingState.holdTimer = setTimeout(() => {
-      if (this.matchingState.isHolding && !this.dragState.hasMoved) {
-        // Long press detected - trigger explosion
-        this.haptic("medium"); // Feedback before explosion
-        this.explodeAndReform(element);
-        this.matchingState.isHolding = false;
-        this.dragState.isDragging = false;
-      }
-    }, 500);
-
     // Add dragging class for visual feedback
     element.classList.add("dragging");
     element.style.cursor = "grabbing";
@@ -440,19 +426,12 @@ class LetterExplosion {
     element.classList.remove("dragging");
     element.style.cursor = "grab";
 
-    // Clear hold timer
-    if (this.matchingState.holdTimer) {
-      clearTimeout(this.matchingState.holdTimer);
-      this.matchingState.holdTimer = null;
-    }
-
-    // If it was a quick click (not a drag or hold), try to match
-    if (!this.dragState.hasMoved && this.matchingState.isHolding) {
+    // If it was a click/tap (not a drag), handle selection
+    if (!this.dragState.hasMoved) {
       this.handleQuickClick(element);
     }
 
-    // Reset states
-    this.matchingState.isHolding = false;
+    // Reset drag state
     this.dragState.isDragging = false;
     this.dragState.element = null;
     this.dragState.hasMoved = false;
