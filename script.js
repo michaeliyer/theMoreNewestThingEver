@@ -237,11 +237,23 @@ class LetterExplosion {
           break;
 
         case "victory":
-          // Victory fanfare (ascending notes)
-          this.createTone(audioContext, 523, now, 0.12, 0.2, "sine");
-          this.createTone(audioContext, 659, now + 0.12, 0.12, 0.2, "sine");
-          this.createTone(audioContext, 784, now + 0.24, 0.15, 0.25, "sine");
-          this.createTone(audioContext, 1047, now + 0.36, 0.25, 0.3, "sine");
+          // Epic victory fanfare - triumphant ascending melody!
+          // First phrase (C-E-G)
+          this.createTone(audioContext, 523, now, 0.15, 0.25, "sine"); // C
+          this.createTone(audioContext, 659, now + 0.15, 0.15, 0.25, "sine"); // E
+          this.createTone(audioContext, 784, now + 0.3, 0.2, 0.3, "sine"); // G
+
+          // Second phrase (G-A-B)
+          this.createTone(audioContext, 784, now + 0.5, 0.12, 0.25, "sine"); // G
+          this.createTone(audioContext, 880, now + 0.62, 0.12, 0.25, "sine"); // A
+          this.createTone(audioContext, 988, now + 0.74, 0.15, 0.28, "sine"); // B
+
+          // Grand finale (High C - triumphant!)
+          this.createTone(audioContext, 1047, now + 0.9, 0.4, 0.35, "sine"); // High C
+
+          // Add harmony for richness
+          this.createTone(audioContext, 523, now + 0.9, 0.4, 0.2, "sine"); // Harmony C
+          this.createTone(audioContext, 784, now + 0.9, 0.4, 0.2, "sine"); // Harmony G
           break;
 
         case "background":
