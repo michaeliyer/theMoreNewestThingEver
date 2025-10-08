@@ -173,13 +173,14 @@ h4.dragging {
   filter: drop-shadow(0 0 15px currentColor);
 }
 
-/* Selected state for matching - clean visual indicator */
+/* Selected state for matching - smooth pulsing effect */
 h1.selected,
 h2.selected,
 h3.selected,
 h4.selected {
   z-index: 999 !important;
-  filter: brightness(1.3) drop-shadow(0 0 15px #4ecdc4);
+  animation: selection-pulse 1.2s ease-in-out infinite;
+  -webkit-animation: selection-pulse 1.2s ease-in-out infinite;
 }
 
 /* Selection checkmark indicator - clean and simple */
@@ -204,7 +205,33 @@ h4.selected::after {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 20px rgba(78, 205, 196, 0.6);
   pointer-events: none;
   animation: checkmark-pop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  -webkit-animation: checkmark-pop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   z-index: 1000;
+}
+
+/* Smooth pulsing animation that works reliably */
+@keyframes selection-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1) drop-shadow(0 0 10px #4ecdc4);
+  }
+  50% {
+    transform: scale(1.1);
+    filter: brightness(1.4) drop-shadow(0 0 25px #4ecdc4);
+  }
+}
+
+@-webkit-keyframes selection-pulse {
+  0%,
+  100% {
+    -webkit-transform: scale(1);
+    -webkit-filter: brightness(1) drop-shadow(0 0 10px #4ecdc4);
+  }
+  50% {
+    -webkit-transform: scale(1.1);
+    -webkit-filter: brightness(1.4) drop-shadow(0 0 25px #4ecdc4);
+  }
 }
 
 @keyframes checkmark-pop {
@@ -217,6 +244,20 @@ h4.selected::after {
   }
   100% {
     transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes checkmark-pop {
+  0% {
+    -webkit-transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    -webkit-transform: scale(1.2);
+  }
+  100% {
+    -webkit-transform: scale(1);
     opacity: 1;
   }
 }

@@ -595,16 +595,21 @@ class LetterExplosion {
       left: 50%;
       top: ${isLarge ? "40%" : "30%"};
       transform: translate(-50%, -50%);
-      font-size: ${isLarge ? "4rem" : "2.5rem"};
+      font-size: ${isLarge ? "3rem" : "2rem"};
       font-weight: bold;
-      color: ${color};
-      text-shadow: 0 0 20px ${color}, 0 0 40px ${color};
+      color: white;
+      background: ${color};
+      padding: ${isLarge ? "20px 40px" : "15px 30px"};
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
       pointer-events: none;
       z-index: 10000;
       animation: floatMessage ${isLarge ? "3s" : "2s"} ease-out forwards;
       font-family: "Bangers", system-ui;
       text-align: center;
       max-width: 90vw;
+      border: 4px solid white;
+      -webkit-font-smoothing: antialiased;
     `;
 
     document.body.appendChild(messageEl);
