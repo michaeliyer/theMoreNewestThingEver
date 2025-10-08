@@ -49,6 +49,7 @@ class LetterExplosion {
 
     // Create shared audio context for better iOS compatibility
     this.audioContext = null;
+    this.audioUnlocked = false;
     try {
       this.audioContext = new (window.AudioContext ||
         window.webkitAudioContext)();
@@ -107,6 +108,52 @@ class LetterExplosion {
 
     // Create settings toggle buttons
     this.createSettingsButtons();
+
+    // Unlock audio on first user interaction (iOS requirement)
+    this.setupAudioUnlock();
+  }
+
+  setupAudioUnlock() {
+    const unlockAudio = async () => {
+      if (this.audioUnlocked || !this.audioContext) return;
+
+      try {
+        // Resume audio context on first interaction
+        if (this.audioContext.state === "suspended") {
+          await this.audioContext.resume();
+        }
+
+        // Play a silent tone to unlock audio on iOS
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        gainNode.gain.value = 0; // Silent
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        oscillator.start(0);
+        oscillator.stop(0.01);
+
+        this.audioUnlocked = true;
+        console.log("✓ Audio unlocked for iOS");
+
+        // Remove listeners after unlocking
+        document.removeEventListener("touchstart", unlockAudio);
+        document.removeEventListener("touchend", unlockAudio);
+        document.removeEventListener("click", unlockAudio);
+      } catch (e) {
+        console.log("Audio unlock failed:", e);
+      }
+    };
+
+    // Try to unlock on any of these events
+    document.addEventListener("touchstart", unlockAudio, {
+      once: true,
+      passive: true,
+    });
+    document.addEventListener("touchend", unlockAudio, {
+      once: true,
+      passive: true,
+    });
+    document.addEventListener("click", unlockAudio, { once: true });
   }
 
   createSettingsButtons() {
@@ -226,9 +273,10 @@ class LetterExplosion {
     if (!this.audioContext) return;
 
     try {
-      // iOS Safari requires audio context to be resumed on user interaction
+      // Ensure audio context is running
       if (this.audioContext.state === "suspended") {
         await this.audioContext.resume();
+        console.log("Audio context resumed for:", type);
       }
 
       const now = this.audioContext.currentTime;
