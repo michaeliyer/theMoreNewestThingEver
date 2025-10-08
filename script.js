@@ -17,6 +17,38 @@ class LetterExplosion {
       elementStartY: 0,
       hasMoved: false,
     };
+    this.matchingState = {
+      selectedElement: null,
+      matchedPairs: new Set(),
+      totalPairs: 0,
+      holdTimer: null,
+      isHolding: false,
+    };
+    this.matchMessages = [
+      "You found a match! ✨",
+      "Perfect pair! 🌟",
+      "Great job! 💫",
+      "Match made! ⭐",
+      "Brilliant! 🎯",
+      "Awesome! 🔥",
+      "Spectacular! 💥",
+      "Amazing! 🌈",
+      "Wonderful! 🎨",
+      "Fantastic! 🚀",
+    ];
+    this.victoryMessages = [
+      "🎉 You matched them all! 🎉",
+      "🏆 Victory! Amazing work! 🏆",
+      "⭐ Perfect! All pairs found! ⭐",
+      "🌟 Incredible! You're a star! 🌟",
+    ];
+
+    // Settings for haptics and sound
+    this.settings = {
+      hapticsEnabled: localStorage.getItem("hapticsEnabled") !== "false", // Default true
+      soundEnabled: localStorage.getItem("soundEnabled") !== "false", // Default true
+    };
+
     this.init();
   }
 
@@ -32,6 +64,15 @@ class LetterExplosion {
   setupElements() {
     // Find all heading elements
     const headings = document.querySelectorAll("h1, h2, h3, h4, h5, h6");
+
+    // Count unique match IDs for total pairs
+    const matchIds = new Set();
+    headings.forEach((heading) => {
+      if (heading.dataset.matchId) {
+        matchIds.add(heading.dataset.matchId);
+      }
+    });
+    this.matchingState.totalPairs = matchIds.size;
 
     headings.forEach((heading) => {
       // Split text into individual letter spans
@@ -56,6 +97,260 @@ class LetterExplosion {
 
     // Start subtle background animations
     this.startSubtleAnimations();
+
+    // Create settings toggle buttons
+    this.createSettingsButtons();
+  }
+
+  createSettingsButtons() {
+    // Container for settings buttons
+    const settingsContainer = document.createElement("div");
+    settingsContainer.className = "settings-container";
+    settingsContainer.style.cssText = `
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 8px;
+      z-index: 10001;
+    `;
+
+    // Sound toggle button
+    const soundButton = document.createElement("button");
+    soundButton.className = "settings-button";
+    soundButton.innerHTML = this.settings.soundEnabled ? "🔊" : "🔇";
+    soundButton.title = "Toggle Sound";
+    soundButton.style.cssText = `
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+      cursor: pointer;
+      opacity: 0.4;
+      transition: opacity 0.2s ease, transform 0.1s ease;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+
+    soundButton.addEventListener("mouseenter", () => {
+      soundButton.style.opacity = "0.8";
+      soundButton.style.transform = "scale(1.1)";
+    });
+
+    soundButton.addEventListener("mouseleave", () => {
+      soundButton.style.opacity = "0.4";
+      soundButton.style.transform = "scale(1)";
+    });
+
+    soundButton.addEventListener("click", () => {
+      this.settings.soundEnabled = !this.settings.soundEnabled;
+      localStorage.setItem("soundEnabled", this.settings.soundEnabled);
+      soundButton.innerHTML = this.settings.soundEnabled ? "🔊" : "🔇";
+      this.playSound("toggle");
+      this.haptic("light");
+    });
+
+    // Haptics toggle button
+    const hapticsButton = document.createElement("button");
+    hapticsButton.className = "settings-button";
+    hapticsButton.innerHTML = this.settings.hapticsEnabled ? "📳" : "📴";
+    hapticsButton.title = "Toggle Haptics";
+    hapticsButton.style.cssText = soundButton.style.cssText; // Same styling
+
+    hapticsButton.addEventListener("mouseenter", () => {
+      hapticsButton.style.opacity = "0.8";
+      hapticsButton.style.transform = "scale(1.1)";
+    });
+
+    hapticsButton.addEventListener("mouseleave", () => {
+      hapticsButton.style.opacity = "0.4";
+      hapticsButton.style.transform = "scale(1)";
+    });
+
+    hapticsButton.addEventListener("click", () => {
+      this.settings.hapticsEnabled = !this.settings.hapticsEnabled;
+      localStorage.setItem("hapticsEnabled", this.settings.hapticsEnabled);
+      hapticsButton.innerHTML = this.settings.hapticsEnabled ? "📳" : "📴";
+      if (this.settings.hapticsEnabled) {
+        this.haptic("light"); // Test haptic
+      }
+    });
+
+    settingsContainer.appendChild(soundButton);
+    settingsContainer.appendChild(hapticsButton);
+    document.body.appendChild(settingsContainer);
+  }
+
+  // Haptic feedback system
+  haptic(type) {
+    if (!this.settings.hapticsEnabled) return;
+
+    if (!navigator.vibrate) return; // Not supported
+
+    const patterns = {
+      light: 50,
+      medium: 100,
+      heavy: 200,
+      success: [50, 50, 100],
+      error: [200],
+      victory: [100, 50, 100, 50, 150],
+      explosion: [100, 30, 50],
+    };
+
+    const pattern = patterns[type] || 50;
+    navigator.vibrate(pattern);
+  }
+
+  // Sound system using Web Audio API (pure JavaScript, no files needed!)
+  playSound(type) {
+    if (!this.settings.soundEnabled) return;
+
+    try {
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
+      const now = audioContext.currentTime;
+
+      switch (type) {
+        case "select":
+          // Quick high beep
+          this.createTone(audioContext, 800, now, 0.05, 0.1, "sine");
+          break;
+
+        case "match":
+          // Cork/suction pop sound (make it louder!)
+          this.createPopSound(audioContext, now, 0.18); // Increased volume
+          break;
+
+        case "explosion":
+          // Soft explosion whoosh (no harsh buzz)
+          this.createExplosionSound(audioContext, now);
+          break;
+
+        case "victory":
+          // Victory fanfare (ascending notes)
+          this.createTone(audioContext, 523, now, 0.12, 0.2, "sine");
+          this.createTone(audioContext, 659, now + 0.12, 0.12, 0.2, "sine");
+          this.createTone(audioContext, 784, now + 0.24, 0.15, 0.25, "sine");
+          this.createTone(audioContext, 1047, now + 0.36, 0.25, 0.3, "sine");
+          break;
+
+        case "background":
+          // Big background explosion (dramatic sweep)
+          this.createTone(audioContext, 400, now, 0.3, 0.4, "triangle");
+          this.createTone(audioContext, 200, now + 0.1, 0.3, 0.3, "sawtooth");
+          this.createTone(audioContext, 100, now + 0.2, 0.2, 0.25, "sawtooth");
+          break;
+
+        case "toggle":
+          // Soft click
+          this.createTone(audioContext, 600, now, 0.03, 0.08, "square");
+          break;
+
+        default:
+          // Generic beep
+          this.createTone(audioContext, 440, now, 0.1, 0.1, "sine");
+      }
+    } catch (e) {
+      console.log("Audio playback not available:", e);
+    }
+  }
+
+  createTone(
+    audioContext,
+    frequency,
+    startTime,
+    duration,
+    volume,
+    type = "sine"
+  ) {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = frequency;
+    oscillator.type = type;
+
+    // Envelope (fade in and out to avoid clicks)
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
+    gainNode.gain.linearRampToValueAtTime(volume, startTime + duration - 0.02);
+    gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration);
+  }
+
+  createPopSound(audioContext, startTime, volume = 0.12) {
+    // Create a gentle, soft pop sound (no harsh buzz)
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    const filter = audioContext.createBiquadFilter();
+
+    // Connect the audio nodes
+    oscillator.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // Soft sine wave only
+    oscillator.type = "sine";
+
+    // Gentle pitch drop (lower frequencies, less harsh)
+    oscillator.frequency.setValueAtTime(250, startTime);
+    oscillator.frequency.exponentialRampToValueAtTime(60, startTime + 0.06);
+
+    // Heavy low-pass filter to remove any harsh frequencies
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(400, startTime); // Much lower cutoff
+    filter.frequency.exponentialRampToValueAtTime(150, startTime + 0.06);
+    filter.Q.value = 0.5; // Gentler resonance
+
+    // Softer envelope
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.003);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.05);
+    gainNode.gain.linearRampToValueAtTime(0, startTime + 0.06);
+
+    oscillator.start(startTime);
+    oscillator.stop(startTime + 0.06);
+  }
+
+  createExplosionSound(audioContext, startTime) {
+    // Soft whoosh sound (no harsh sawtooth buzz)
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    const filter = audioContext.createBiquadFilter();
+
+    oscillator.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // Use sine wave instead of harsh sawtooth
+    oscillator.type = "sine";
+
+    // Descending whoosh
+    oscillator.frequency.setValueAtTime(180, startTime);
+    oscillator.frequency.exponentialRampToValueAtTime(40, startTime + 0.15);
+
+    // Filter to keep it soft
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(600, startTime);
+    filter.frequency.exponentialRampToValueAtTime(200, startTime + 0.15);
+    filter.Q.value = 0.7;
+
+    // Envelope
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(0.15, startTime + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.12);
+    gainNode.gain.linearRampToValueAtTime(0, startTime + 0.15);
+
+    oscillator.start(startTime);
+    oscillator.stop(startTime + 0.15);
   }
 
   setupDragAndClick(heading) {
@@ -83,6 +378,21 @@ class LetterExplosion {
     const rect = element.getBoundingClientRect();
     this.dragState.elementStartX = rect.left;
     this.dragState.elementStartY = rect.top;
+
+    // Light haptic on touch
+    this.haptic("light");
+
+    // Start hold timer for explosion (500ms hold = explosion)
+    this.matchingState.isHolding = true;
+    this.matchingState.holdTimer = setTimeout(() => {
+      if (this.matchingState.isHolding && !this.dragState.hasMoved) {
+        // Long press detected - trigger explosion
+        this.haptic("medium"); // Feedback before explosion
+        this.explodeAndReform(element);
+        this.matchingState.isHolding = false;
+        this.dragState.isDragging = false;
+      }
+    }, 500);
 
     // Add dragging class for visual feedback
     element.classList.add("dragging");
@@ -127,12 +437,19 @@ class LetterExplosion {
     element.classList.remove("dragging");
     element.style.cursor = "grab";
 
-    // If it was a click (not a drag), trigger explosion
-    if (!this.dragState.hasMoved) {
-      this.explodeAndReform(element);
+    // Clear hold timer
+    if (this.matchingState.holdTimer) {
+      clearTimeout(this.matchingState.holdTimer);
+      this.matchingState.holdTimer = null;
     }
 
-    // Reset drag state
+    // If it was a quick click (not a drag or hold), try to match
+    if (!this.dragState.hasMoved && this.matchingState.isHolding) {
+      this.handleQuickClick(element);
+    }
+
+    // Reset states
+    this.matchingState.isHolding = false;
     this.dragState.isDragging = false;
     this.dragState.element = null;
     this.dragState.hasMoved = false;
@@ -140,6 +457,207 @@ class LetterExplosion {
 
   handleTouchEnd(e) {
     this.handleMouseUp(e);
+  }
+
+  handleQuickClick(element) {
+    // Check if already matched
+    const matchId = element.dataset.matchId;
+    if (this.matchingState.matchedPairs.has(matchId)) {
+      return; // Already matched, do nothing
+    }
+
+    // If no element is selected, select this one
+    if (!this.matchingState.selectedElement) {
+      this.matchingState.selectedElement = element;
+      element.classList.add("selected");
+      this.haptic("light");
+      this.playSound("select");
+      return;
+    }
+
+    // If clicking the same element, deselect it
+    if (this.matchingState.selectedElement === element) {
+      element.classList.remove("selected");
+      this.matchingState.selectedElement = null;
+      this.haptic("light");
+      return;
+    }
+
+    // Check if it's a match
+    const selectedMatchId = this.matchingState.selectedElement.dataset.matchId;
+    if (selectedMatchId === matchId) {
+      // It's a match!
+      this.haptic("success");
+      this.playSound("match");
+      this.handleMatch(this.matchingState.selectedElement, element);
+    } else {
+      // Not a match - deselect previous and select new
+      this.matchingState.selectedElement.classList.remove("selected");
+      this.matchingState.selectedElement = element;
+      element.classList.add("selected");
+      this.haptic("light");
+      this.playSound("select");
+    }
+  }
+
+  handleMatch(element1, element2) {
+    const matchId = element1.dataset.matchId;
+
+    // Mark as matched
+    this.matchingState.matchedPairs.add(matchId);
+    element1.classList.remove("selected");
+    element2.classList.remove("selected");
+    element1.classList.add("matched");
+    element2.classList.add("matched");
+
+    // Show match message
+    this.showMatchMessage();
+
+    // Explode both elements with stardust!
+    setTimeout(() => {
+      this.explodeMatchedPair(element1, element2);
+    }, 500);
+
+    // Reset selection
+    this.matchingState.selectedElement = null;
+
+    // Check for victory
+    if (
+      this.matchingState.matchedPairs.size === this.matchingState.totalPairs
+    ) {
+      setTimeout(() => {
+        this.showVictoryMessage();
+      }, 3000); // Wait for explosions to finish
+    }
+  }
+
+  explodeMatchedPair(element1, element2) {
+    // Create stardust at both locations before removing
+    this.createLingeringStardust(element1);
+    this.createLingeringStardust(element2);
+
+    // Haptic for explosion
+    this.haptic("explosion");
+    this.playSound("explosion");
+
+    // Explode both elements
+    this.explodeAndReform(element1);
+    this.explodeAndReform(element2);
+
+    // Remove both elements after explosion
+    setTimeout(() => {
+      if (element1.parentNode) {
+        element1.style.opacity = "0";
+        element1.style.transition = "opacity 1s ease-out";
+      }
+      if (element2.parentNode) {
+        element2.style.opacity = "0";
+        element2.style.transition = "opacity 1s ease-out";
+      }
+
+      setTimeout(() => {
+        if (element1.parentNode) element1.parentNode.removeChild(element1);
+        if (element2.parentNode) element2.parentNode.removeChild(element2);
+      }, 1000);
+    }, 2500); // After explosion animation
+  }
+
+  showMatchMessage() {
+    const message =
+      this.matchMessages[Math.floor(Math.random() * this.matchMessages.length)];
+    this.displayFloatingMessage(message, "#4ecdc4");
+  }
+
+  showVictoryMessage() {
+    const message =
+      this.victoryMessages[
+        Math.floor(Math.random() * this.victoryMessages.length)
+      ];
+    this.displayFloatingMessage(message, "#feca57", true);
+    this.haptic("victory");
+    this.playSound("victory");
+    this.createVictoryConfetti();
+  }
+
+  displayFloatingMessage(text, color, isLarge = false) {
+    const messageEl = document.createElement("div");
+    messageEl.className = isLarge ? "victory-message" : "match-message";
+    messageEl.textContent = text;
+    messageEl.style.cssText = `
+      position: fixed;
+      left: 50%;
+      top: ${isLarge ? "40%" : "30%"};
+      transform: translate(-50%, -50%);
+      font-size: ${isLarge ? "4rem" : "2.5rem"};
+      font-weight: bold;
+      color: ${color};
+      text-shadow: 0 0 20px ${color}, 0 0 40px ${color};
+      pointer-events: none;
+      z-index: 10000;
+      animation: floatMessage ${isLarge ? "3s" : "2s"} ease-out forwards;
+      font-family: "Bangers", system-ui;
+      text-align: center;
+      max-width: 90vw;
+    `;
+
+    document.body.appendChild(messageEl);
+
+    setTimeout(() => {
+      if (messageEl.parentNode) {
+        messageEl.parentNode.removeChild(messageEl);
+      }
+    }, (isLarge ? 3 : 2) * 1000);
+  }
+
+  createVictoryConfetti() {
+    // Create lots of confetti particles
+    for (let i = 0; i < 100; i++) {
+      setTimeout(() => {
+        const confetti = document.createElement("div");
+        confetti.className = "confetti";
+
+        const colors = [
+          "#ff6b6b",
+          "#4ecdc4",
+          "#45b7d1",
+          "#feca57",
+          "#ff9ff3",
+          "#54a0ff",
+        ];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
+        const startX = Math.random() * window.innerWidth;
+        const startY = -20;
+        const endX = startX + (Math.random() - 0.5) * 400;
+        const endY = window.innerHeight + 20;
+        const rotation = Math.random() * 720;
+        const duration = 2 + Math.random() * 2;
+
+        confetti.style.cssText = `
+          position: fixed;
+          left: ${startX}px;
+          top: ${startY}px;
+          width: ${8 + Math.random() * 12}px;
+          height: ${8 + Math.random() * 12}px;
+          background: ${color};
+          border-radius: ${Math.random() > 0.5 ? "50%" : "0%"};
+          pointer-events: none;
+          z-index: 9999;
+          animation: confettiFall ${duration}s ease-out forwards;
+          --end-x: ${endX}px;
+          --end-y: ${endY}px;
+          --rotation: ${rotation}deg;
+        `;
+
+        document.body.appendChild(confetti);
+
+        setTimeout(() => {
+          if (confetti.parentNode) {
+            confetti.parentNode.removeChild(confetti);
+          }
+        }, duration * 1000);
+      }, i * 30); // Stagger confetti creation
+    }
   }
 
   positionRandomlyOnLoad(element) {
@@ -197,6 +715,10 @@ class LetterExplosion {
   explodeAndReform(element) {
     const letters = element.querySelectorAll(".letter");
     const randomColors = this.getRandomColorPalette();
+
+    // Haptic feedback for explosion
+    this.haptic("explosion");
+    this.playSound("explosion");
 
     // Add glowing effect to the element
     element.classList.add("glowing");
@@ -671,9 +1193,36 @@ class LetterExplosion {
 class BackgroundEffects {
   constructor() {
     this.isAnimating = false;
+    // Share settings with LetterExplosion
+    this.settings = letterExplosion.settings;
     this.init();
     // Set random background color on page load
     this.setRandomInitialBackground();
+  }
+
+  // Haptic feedback (shared with LetterExplosion)
+  haptic(type) {
+    if (!this.settings.hapticsEnabled) return;
+    if (!navigator.vibrate) return;
+
+    const patterns = {
+      light: 50,
+      medium: 100,
+      heavy: 200,
+      success: [50, 50, 100],
+      error: [200],
+      victory: [100, 50, 100, 50, 150],
+      explosion: [100, 30, 50],
+      background: [150, 50, 100, 50, 150],
+    };
+
+    const pattern = patterns[type] || 50;
+    navigator.vibrate(pattern);
+  }
+
+  playSound(type) {
+    if (!this.settings.soundEnabled) return;
+    console.log(`🔊 Sound: ${type}`);
   }
 
   init() {
@@ -731,6 +1280,10 @@ class BackgroundEffects {
     if (this.isAnimating) return;
 
     this.isAnimating = true;
+
+    // Haptic feedback for background explosion
+    this.haptic("background");
+    this.playSound("background");
 
     // Debug log
     console.log("Triggering wild colors animation!");
@@ -962,6 +1515,7 @@ class BackgroundEffects {
 
   triggerPulse() {
     if (!this.isAnimating) {
+      this.haptic("light");
       document.body.classList.add("pulsing");
 
       setTimeout(() => {
