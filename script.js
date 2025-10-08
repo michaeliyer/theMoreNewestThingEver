@@ -177,7 +177,8 @@ class LetterExplosion {
       localStorage.setItem("hapticsEnabled", this.settings.hapticsEnabled);
       hapticsButton.innerHTML = this.settings.hapticsEnabled ? "📳" : "📴";
       if (this.settings.hapticsEnabled) {
-        this.haptic("light"); // Test haptic
+        // Test with a more noticeable pattern when enabling
+        this.haptic("success");
       }
     });
 
@@ -193,17 +194,21 @@ class LetterExplosion {
     if (!navigator.vibrate) return; // Not supported
 
     const patterns = {
-      light: 50,
-      medium: 100,
-      heavy: 200,
-      success: [50, 50, 100],
-      error: [200],
-      victory: [100, 50, 100, 50, 150],
-      explosion: [100, 30, 50],
+      light: 30, // Quick tap
+      medium: 80, // Medium feedback
+      heavy: 150, // Strong feedback
+      success: [60, 40, 120, 40, 80], // Success pattern - more distinct
+      error: [150, 50, 150], // Error buzz - more noticeable
+      victory: [80, 50, 80, 50, 120, 50, 150], // Victory celebration
+      explosion: [100, 40, 80, 40, 60], // Explosion rumble
     };
 
-    const pattern = patterns[type] || 50;
-    navigator.vibrate(pattern);
+    const pattern = patterns[type] || 30;
+    try {
+      navigator.vibrate(pattern);
+    } catch (e) {
+      console.log("Vibration not available:", e);
+    }
   }
 
   // Sound system using Web Audio API (pure JavaScript, no files needed!)
@@ -1268,18 +1273,22 @@ class BackgroundEffects {
     if (!navigator.vibrate) return;
 
     const patterns = {
-      light: 50,
-      medium: 100,
-      heavy: 200,
-      success: [50, 50, 100],
-      error: [200],
-      victory: [100, 50, 100, 50, 150],
-      explosion: [100, 30, 50],
-      background: [150, 50, 100, 50, 150],
+      light: 30,
+      medium: 80,
+      heavy: 150,
+      success: [60, 40, 120, 40, 80],
+      error: [150, 50, 150],
+      victory: [80, 50, 80, 50, 120, 50, 150],
+      explosion: [100, 40, 80, 40, 60],
+      background: [120, 50, 100, 50, 120, 50, 80], // More intense background
     };
 
-    const pattern = patterns[type] || 50;
-    navigator.vibrate(pattern);
+    const pattern = patterns[type] || 30;
+    try {
+      navigator.vibrate(pattern);
+    } catch (e) {
+      console.log("Vibration not available:", e);
+    }
   }
 
   playSound(type) {
