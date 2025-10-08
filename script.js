@@ -41,9 +41,8 @@ class LetterExplosion {
       "🌟 Incredible! You're a star! 🌟",
     ];
 
-    // Settings for haptics and sound
+    // Settings for sound
     this.settings = {
-      hapticsEnabled: localStorage.getItem("hapticsEnabled") !== "false", // Default true
       soundEnabled: localStorage.getItem("soundEnabled") !== "false", // Default true
     };
 
@@ -208,64 +207,13 @@ class LetterExplosion {
       localStorage.setItem("soundEnabled", this.settings.soundEnabled);
       soundButton.innerHTML = this.settings.soundEnabled ? "🔊" : "🔇";
       this.playSound("toggle");
-      this.haptic("light");
-    });
-
-    // Haptics toggle button
-    const hapticsButton = document.createElement("button");
-    hapticsButton.className = "settings-button";
-    hapticsButton.innerHTML = this.settings.hapticsEnabled ? "📳" : "📴";
-    hapticsButton.title = "Toggle Haptics";
-    hapticsButton.style.cssText = soundButton.style.cssText; // Same styling
-
-    hapticsButton.addEventListener("mouseenter", () => {
-      hapticsButton.style.opacity = "0.8";
-      hapticsButton.style.transform = "scale(1.1)";
-    });
-
-    hapticsButton.addEventListener("mouseleave", () => {
-      hapticsButton.style.opacity = "0.4";
-      hapticsButton.style.transform = "scale(1)";
-    });
-
-    hapticsButton.addEventListener("click", () => {
-      this.settings.hapticsEnabled = !this.settings.hapticsEnabled;
-      localStorage.setItem("hapticsEnabled", this.settings.hapticsEnabled);
-      hapticsButton.innerHTML = this.settings.hapticsEnabled ? "📳" : "📴";
-      if (this.settings.hapticsEnabled) {
-        // Test with a more noticeable pattern when enabling
-        this.haptic("success");
-      }
     });
 
     settingsContainer.appendChild(soundButton);
-    settingsContainer.appendChild(hapticsButton);
     document.body.appendChild(settingsContainer);
   }
 
-  // Haptic feedback system
-  haptic(type) {
-    if (!this.settings.hapticsEnabled) return;
-
-    if (!navigator.vibrate) return; // Not supported
-
-    const patterns = {
-      light: 30, // Quick tap
-      medium: 80, // Medium feedback
-      heavy: 150, // Strong feedback
-      success: [60, 40, 120, 40, 80], // Success pattern - more distinct
-      error: [150, 50, 150], // Error buzz - more noticeable
-      victory: [80, 50, 80, 50, 120, 50, 150], // Victory celebration
-      explosion: [100, 40, 80, 40, 60], // Explosion rumble
-    };
-
-    const pattern = patterns[type] || 30;
-    try {
-      navigator.vibrate(pattern);
-    } catch (e) {
-      console.log("Vibration not available:", e);
-    }
-  }
+  // Haptic feedback removed
 
   // Sound system using Web Audio API (pure JavaScript, no files needed!)
   async playSound(type) {
@@ -542,7 +490,6 @@ class LetterExplosion {
       // Quick tap (< 300ms and no movement) = instant selection
       if (touchDuration < 300 && !hasMoved) {
         e.preventDefault();
-        this.haptic("light");
         this.handleQuickClick(heading);
       } else if (hasMoved) {
         // Was a drag, handle normally
@@ -564,9 +511,6 @@ class LetterExplosion {
     const rect = element.getBoundingClientRect();
     this.dragState.elementStartX = rect.left;
     this.dragState.elementStartY = rect.top;
-
-    // Light haptic on touch
-    this.haptic("light");
 
     // Add dragging class for visual feedback
     element.classList.add("dragging");
@@ -637,7 +581,6 @@ class LetterExplosion {
     if (!this.matchingState.selectedElement) {
       this.matchingState.selectedElement = element;
       element.classList.add("selected");
-      this.haptic("light");
       this.playSound("select");
       console.log("✓ Selected:", element.textContent);
       return;
@@ -647,7 +590,6 @@ class LetterExplosion {
     if (this.matchingState.selectedElement === element) {
       element.classList.remove("selected");
       this.matchingState.selectedElement = null;
-      this.haptic("light");
       console.log("✗ Deselected:", element.textContent);
       return;
     }
@@ -656,13 +598,11 @@ class LetterExplosion {
     const selectedMatchId = this.matchingState.selectedElement.dataset.matchId;
     if (selectedMatchId === matchId) {
       // It's a match!
-      this.haptic("success");
       this.playSound("match");
       console.log("🎉 Match found!", element.textContent);
       this.handleMatch(this.matchingState.selectedElement, element);
     } else {
       // Not a match - show error feedback
-      this.haptic("error");
       this.playSound("error");
 
       // Shake both elements briefly
@@ -720,8 +660,6 @@ class LetterExplosion {
     this.createLingeringStardust(element1);
     this.createLingeringStardust(element2);
 
-    // Haptic for explosion
-    this.haptic("explosion");
     this.playSound("explosion");
 
     // Explode both elements
@@ -758,7 +696,6 @@ class LetterExplosion {
         Math.floor(Math.random() * this.victoryMessages.length)
       ];
     this.displayFloatingMessage(message, "#feca57", true);
-    this.haptic("victory");
     this.playSound("victory");
     this.createVictoryConfetti();
   }
@@ -767,6 +704,10 @@ class LetterExplosion {
     const messageEl = document.createElement("div");
     messageEl.className = isLarge ? "victory-message" : "match-message";
     messageEl.textContent = text;
+
+    const displayTime = isLarge ? 6000 : 2000; // Victory shows for 6 seconds
+    const fadeTime = isLarge ? 2000 : 500; // Victory fades over 2 seconds
+
     messageEl.style.cssText = `
       position: fixed;
       left: 50%;
@@ -781,21 +722,31 @@ class LetterExplosion {
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
       pointer-events: none;
       z-index: 10000;
-      animation: floatMessage ${isLarge ? "3s" : "2s"} ease-out forwards;
+      animation: floatMessage ${isLarge ? "2s" : "1.5s"} ease-out forwards;
       font-family: "Bangers", system-ui;
       text-align: center;
       max-width: 90vw;
       border: 4px solid white;
       -webkit-font-smoothing: antialiased;
+      opacity: 1;
+      transition: opacity ${fadeTime}ms ease-out;
     `;
 
     document.body.appendChild(messageEl);
 
+    // Start fade out before removal
+    setTimeout(() => {
+      if (messageEl.parentNode) {
+        messageEl.style.opacity = "0";
+      }
+    }, displayTime - fadeTime);
+
+    // Remove after fade completes
     setTimeout(() => {
       if (messageEl.parentNode) {
         messageEl.parentNode.removeChild(messageEl);
       }
-    }, (isLarge ? 3 : 2) * 1000);
+    }, displayTime);
   }
 
   createVictoryConfetti() {
@@ -905,8 +856,6 @@ class LetterExplosion {
     const letters = element.querySelectorAll(".letter");
     const randomColors = this.getRandomColorPalette();
 
-    // Haptic feedback for explosion
-    this.haptic("explosion");
     this.playSound("explosion");
 
     // Add glowing effect to the element
@@ -1389,30 +1338,6 @@ class BackgroundEffects {
     this.setRandomInitialBackground();
   }
 
-  // Haptic feedback (shared with LetterExplosion)
-  haptic(type) {
-    if (!this.settings.hapticsEnabled) return;
-    if (!navigator.vibrate) return;
-
-    const patterns = {
-      light: 30,
-      medium: 80,
-      heavy: 150,
-      success: [60, 40, 120, 40, 80],
-      error: [150, 50, 150],
-      victory: [80, 50, 80, 50, 120, 50, 150],
-      explosion: [100, 40, 80, 40, 60],
-      background: [120, 50, 100, 50, 120, 50, 80], // More intense background
-    };
-
-    const pattern = patterns[type] || 30;
-    try {
-      navigator.vibrate(pattern);
-    } catch (e) {
-      console.log("Vibration not available:", e);
-    }
-  }
-
   playSound(type) {
     if (!this.settings.soundEnabled) return;
     console.log(`🔊 Sound: ${type}`);
@@ -1474,8 +1399,6 @@ class BackgroundEffects {
 
     this.isAnimating = true;
 
-    // Haptic feedback for background explosion
-    this.haptic("background");
     this.playSound("background");
 
     // Debug log
@@ -1708,7 +1631,6 @@ class BackgroundEffects {
 
   triggerPulse() {
     if (!this.isAnimating) {
-      this.haptic("light");
       document.body.classList.add("pulsing");
 
       setTimeout(() => {
