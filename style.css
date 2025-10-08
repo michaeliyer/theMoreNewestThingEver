@@ -1,0 +1,631 @@
+html {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background-color: rgb(24, 9, 94);
+  overflow-x: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  padding: 50px 20px; /* Add padding to create more clickable empty space */
+  min-height: 100vh; /* Ensure body takes full height */
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* Mobile-specific optimizations */
+@media screen and (max-width: 1024px) {
+  body {
+    transform: translateZ(0); /* Force hardware acceleration */
+    -webkit-transform: translateZ(0);
+  }
+}
+
+/* iPad-specific optimizations */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  html {
+    height: 100%;
+    width: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    height: 100vh !important;
+    width: 100vw !important;
+    min-height: 100vh !important;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+}
+
+/* Wild background animations - now handled by JavaScript for mobile compatibility */
+body.wild-colors {
+  /* Animation now handled by JavaScript for smoother mobile performance */
+}
+
+/* Gradient keyframes removed - using JavaScript-based smooth transitions instead */
+
+/* Floating particles for background effect */
+.bg-particle {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+  animation: floatParticle 5s ease-out forwards;
+}
+
+@keyframes floatParticle {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(var(--particle-x, 0), var(--particle-y, 0)) scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(var(--particle-x, 0), var(--particle-y, 0)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Pulse effect for body */
+body.pulsing {
+  animation: bodyPulse 0.5s ease-out;
+}
+
+@keyframes bodyPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+h1,
+h2,
+h3,
+h4 {
+  cursor: grab;
+  transition: transform 0.2s ease, top 1s ease, left 1s ease;
+  user-select: none;
+  position: absolute; /* Changed to absolute for repositioning */
+  margin: 10px 0; /* Reduce margins to create more empty space */
+  padding: 5px 0; /* Minimal padding */
+  width: auto;
+  max-width: calc(100vw - 40px); /* Prevent overflow */
+}
+
+/* Dragging state */
+h1.dragging,
+h2.dragging,
+h3.dragging,
+h4.dragging {
+  cursor: grabbing;
+  z-index: 1000;
+  transition: none; /* Disable transitions during drag */
+  filter: drop-shadow(0 0 15px currentColor);
+}
+
+/* Repositioning animation */
+h1.repositioning,
+h2.repositioning,
+h3.repositioning,
+h4.repositioning {
+  transition: top 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+    left 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+    transform 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  z-index: 100;
+  transform-origin: center center;
+}
+
+/* Support for different text orientations */
+h1,
+h2,
+h3,
+h4 {
+  white-space: nowrap;
+  overflow: visible;
+}
+
+/* Enhanced letter positioning for layouts */
+.letter {
+  transition: all 0.3s ease, top 0.5s ease, left 0.5s ease;
+}
+
+/* Initial positioning for headings */
+h1:nth-of-type(1) {
+  top: 50px;
+  left: 20px;
+}
+h1:nth-of-type(2) {
+  top: 100px;
+  left: 20px;
+}
+h2:nth-of-type(1) {
+  top: 150px;
+  left: 20px;
+}
+h3:nth-of-type(1) {
+  top: 200px;
+  left: 20px;
+}
+h4:nth-of-type(1) {
+  top: 250px;
+  left: 20px;
+}
+
+h1:hover,
+h2:hover,
+h3:hover,
+h4:hover {
+  transform: scale(1.05);
+}
+
+h1 {
+  color: rgb(76, 143, 209);
+  font-family: "Bree Serif", serif;
+  font-size: 4rem;
+}
+
+h2 {
+  color: rgb(76, 14, 142);
+  font-family: "Roboto Slab", serif;
+}
+
+h3 {
+  color: rgb(174, 198, 22);
+  font-family: "Spicy Rice", serif;
+}
+
+h4 {
+  color: rgb(198, 22, 40);
+  font-family: "Bangers", system-ui;
+}
+
+/* Letter animation styles */
+.letter {
+  display: inline-block;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.letter.exploding {
+  animation: explode 0.8s ease-out forwards;
+}
+
+.letter.reforming {
+  animation: reform 0.8s ease-out forwards;
+}
+
+@keyframes explode {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 1;
+    font-size: inherit;
+    text-shadow: none;
+  }
+  25% {
+    transform: translate(
+        calc(var(--random-x, 0) * 0.3),
+        calc(var(--random-y, 0) * 0.3)
+      )
+      rotate(calc(var(--random-rotation, 0) * 0.3)) scale(1.5);
+    opacity: 0.9;
+    font-size: var(--explosion-size, inherit);
+    text-shadow: 0 0 20px var(--glow-color, currentColor);
+  }
+  50% {
+    transform: translate(
+        calc(var(--random-x, 0) * 0.7),
+        calc(var(--random-y, 0) * 0.7)
+      )
+      rotate(calc(var(--random-rotation, 0) * 0.7)) scale(0.8);
+    opacity: 0.6;
+    font-size: calc(var(--explosion-size, inherit) * 1.2);
+    text-shadow: 0 0 30px var(--glow-color, currentColor),
+      0 0 40px var(--glow-color, currentColor);
+  }
+  100% {
+    transform: translate(var(--random-x, 0), var(--random-y, 0))
+      rotate(var(--random-rotation, 0)) scale(0.2);
+    opacity: 0;
+    font-size: calc(var(--explosion-size, inherit) * 0.5);
+    text-shadow: 0 0 50px var(--glow-color, currentColor);
+  }
+}
+
+@keyframes reform {
+  0% {
+    transform: translate(var(--reform-start-x, 0), var(--reform-start-y, 0))
+      rotate(var(--reform-start-rotation, 0))
+      scale(var(--reform-start-scale, 0.2));
+    opacity: 0;
+    font-size: calc(var(--final-size, inherit) * 0.3);
+    text-shadow: 0 0 25px currentColor;
+  }
+  15% {
+    transform: translate(
+        calc(var(--reform-start-x, 0) * 0.8),
+        calc(var(--reform-start-y, 0) * 0.8)
+      )
+      rotate(calc(var(--reform-start-rotation, 0) * 0.8))
+      scale(calc(var(--reform-start-scale, 0.2) * 2));
+    opacity: 0.2;
+    font-size: calc(var(--final-size, inherit) * 1.8);
+    text-shadow: 0 0 30px currentColor, 0 0 40px currentColor;
+  }
+  35% {
+    transform: translate(
+        calc(var(--reform-start-x, 0) * 0.5),
+        calc(var(--reform-start-y, 0) * 0.5)
+      )
+      rotate(calc(var(--reform-start-rotation, 0) * 0.5)) scale(1.3);
+    opacity: 0.5;
+    font-size: calc(var(--final-size, inherit) * 1.4);
+    text-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+  }
+  55% {
+    transform: translate(
+        calc(var(--reform-start-x, 0) * 0.2),
+        calc(var(--reform-start-y, 0) * 0.2)
+      )
+      rotate(calc(var(--reform-start-rotation, 0) * 0.2)) scale(0.8);
+    opacity: 0.7;
+    font-size: calc(var(--final-size, inherit) * 1.1);
+    text-shadow: 0 0 15px currentColor;
+  }
+  75% {
+    transform: translate(
+        calc(var(--reform-start-x, 0) * 0.05),
+        calc(var(--reform-start-y, 0) * 0.05)
+      )
+      rotate(calc(var(--reform-start-rotation, 0) * 0.05)) scale(1.1);
+    opacity: 0.9;
+    font-size: var(--final-size, inherit);
+    text-shadow: 0 0 8px currentColor;
+  }
+  90% {
+    transform: translate(
+        calc(var(--reform-start-x, 0) * 0.01),
+        calc(var(--reform-start-y, 0) * 0.01)
+      )
+      rotate(calc(var(--reform-start-rotation, 0) * 0.01)) scale(1.02);
+    opacity: 0.95;
+    font-size: var(--final-size, inherit);
+    text-shadow: 0 0 4px currentColor;
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 1;
+    font-size: var(--final-size, inherit);
+    text-shadow: none;
+  }
+}
+
+/* Sparkle effect */
+.sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, #fff, transparent);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: sparkle 1s ease-out forwards;
+}
+
+@keyframes sparkle {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* Mini sparkle animation for subtle effects */
+@keyframes miniSparkle {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+    background: #fff;
+  }
+  25% {
+    transform: scale(1.5) rotate(90deg);
+    opacity: 0.9;
+    background: #feca57;
+  }
+  50% {
+    transform: scale(1) rotate(180deg);
+    opacity: 0.7;
+    background: #ff6b6b;
+  }
+  75% {
+    transform: scale(1.2) rotate(270deg);
+    opacity: 0.5;
+    background: #4ecdc4;
+  }
+  100% {
+    transform: scale(0) rotate(360deg);
+    opacity: 0;
+    background: #45b7d1;
+  }
+}
+
+/* Dramatic explosion ring animation */
+@keyframes explosionRing {
+  0% {
+    width: 0px;
+    height: 0px;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    border-width: 4px;
+  }
+  50% {
+    width: 300px;
+    height: 300px;
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.2);
+    border-width: 2px;
+  }
+  100% {
+    width: 600px;
+    height: 600px;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.5);
+    border-width: 1px;
+  }
+}
+
+/* Pulsing explosion ring animation - expands and pulses */
+@keyframes explosionRingPulse {
+  0% {
+    width: 0px;
+    height: 0px;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    border-width: 5px;
+  }
+  15% {
+    width: 200px;
+    height: 200px;
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1.1);
+    border-width: 4px;
+  }
+  25% {
+    width: 350px;
+    height: 350px;
+    opacity: 0.85;
+    transform: translate(-50%, -50%) scale(1);
+    border-width: 4px;
+  }
+  35% {
+    width: 400px;
+    height: 400px;
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1.05);
+    border-width: 3px;
+  }
+  45% {
+    width: 450px;
+    height: 450px;
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(0.98);
+    border-width: 3px;
+  }
+  55% {
+    width: 500px;
+    height: 500px;
+    opacity: 0.85;
+    transform: translate(-50%, -50%) scale(1.03);
+    border-width: 3px;
+  }
+  65% {
+    width: 550px;
+    height: 550px;
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(0.99);
+    border-width: 2px;
+  }
+  75% {
+    width: 600px;
+    height: 600px;
+    opacity: 0.75;
+    transform: translate(-50%, -50%) scale(1.02);
+    border-width: 2px;
+  }
+  85% {
+    width: 650px;
+    height: 650px;
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+    border-width: 2px;
+  }
+  95% {
+    width: 700px;
+    height: 700px;
+    opacity: 0.2;
+    transform: translate(-50%, -50%) scale(1.01);
+    border-width: 1px;
+  }
+  100% {
+    width: 750px;
+    height: 750px;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+    border-width: 1px;
+  }
+}
+
+/* Screen shake animation */
+@keyframes screenShake {
+  0% {
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+  10% {
+    transform: translate(-2px, -1px) rotate(-0.5deg);
+  }
+  20% {
+    transform: translate(-1px, 0px) rotate(0.5deg);
+  }
+  30% {
+    transform: translate(2px, 1px) rotate(0deg);
+  }
+  40% {
+    transform: translate(1px, -1px) rotate(0.5deg);
+  }
+  50% {
+    transform: translate(-1px, 1px) rotate(-0.5deg);
+  }
+  60% {
+    transform: translate(-2px, 0px) rotate(0deg);
+  }
+  70% {
+    transform: translate(2px, 1px) rotate(-0.5deg);
+  }
+  80% {
+    transform: translate(-1px, -1px) rotate(0.5deg);
+  }
+  90% {
+    transform: translate(1px, 0px) rotate(0deg);
+  }
+  100% {
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+}
+
+/* Glow effect for active elements */
+.glowing {
+  text-shadow: 0 0 10px currentColor, 0 0 20px currentColor,
+    0 0 30px currentColor;
+}
+
+/* Letter-specific screen shake (lighter) */
+@keyframes letterShake {
+  0% {
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+  10% {
+    transform: translate(-1px, -0.5px) rotate(-0.2deg);
+  }
+  20% {
+    transform: translate(-0.5px, 0px) rotate(0.2deg);
+  }
+  30% {
+    transform: translate(1px, 0.5px) rotate(0deg);
+  }
+  40% {
+    transform: translate(0.5px, -0.5px) rotate(0.2deg);
+  }
+  50% {
+    transform: translate(-0.5px, 0.5px) rotate(-0.2deg);
+  }
+  60% {
+    transform: translate(-1px, 0px) rotate(0deg);
+  }
+  70% {
+    transform: translate(1px, 0.5px) rotate(-0.2deg);
+  }
+  80% {
+    transform: translate(-0.5px, -0.5px) rotate(0.2deg);
+  }
+  90% {
+    transform: translate(0.5px, 0px) rotate(0deg);
+  }
+  100% {
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+}
+
+/* Individual letter shake */
+@keyframes individualLetterShake {
+  0% {
+    transform: translate(0px, 0px) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translate(-1px, -1px) rotate(-1deg) scale(1.1);
+  }
+  50% {
+    transform: translate(1px, -1px) rotate(1deg) scale(0.9);
+  }
+  75% {
+    transform: translate(-1px, 1px) rotate(-0.5deg) scale(1.05);
+  }
+  100% {
+    transform: translate(0px, 0px) rotate(0deg) scale(1);
+  }
+}
+
+/* Enhanced sparkle animation */
+@keyframes enhancedSparkle {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(1.5) rotate(90deg);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1) rotate(180deg);
+    opacity: 0.8;
+  }
+  75% {
+    transform: scale(1.3) rotate(270deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* Lingering stardust twinkle animation */
+@keyframes twinkle {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  25% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  75% {
+    transform: scale(1.2);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+}
