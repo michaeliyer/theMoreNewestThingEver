@@ -113,6 +113,9 @@ class LetterExplosion {
       display: flex;
       gap: 8px;
       z-index: 10001;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
     `;
 
     // Sound toggle button
@@ -469,27 +472,19 @@ class LetterExplosion {
     // If no element is selected, select this one
     if (!this.matchingState.selectedElement) {
       this.matchingState.selectedElement = element;
-      // Force reflow to ensure CSS animation restarts (iOS fix)
-      element.classList.remove("selected");
-      void element.offsetWidth; // Trigger reflow
       element.classList.add("selected");
-      // Force style update on iOS
-      element.style.webkitAnimation = "pulse-glow 0.8s ease-in-out infinite";
-      element.style.animation = "pulse-glow 0.8s ease-in-out infinite";
       this.haptic("light");
       this.playSound("select");
-      console.log("Selected element:", element.textContent);
+      console.log("✓ Selected:", element.textContent);
       return;
     }
 
     // If clicking the same element, deselect it
     if (this.matchingState.selectedElement === element) {
       element.classList.remove("selected");
-      element.style.webkitAnimation = "";
-      element.style.animation = "";
       this.matchingState.selectedElement = null;
       this.haptic("light");
-      console.log("Deselected element:", element.textContent);
+      console.log("✗ Deselected:", element.textContent);
       return;
     }
 
@@ -499,23 +494,16 @@ class LetterExplosion {
       // It's a match!
       this.haptic("success");
       this.playSound("match");
-      console.log("Match found!");
+      console.log("🎉 Match found!", element.textContent);
       this.handleMatch(this.matchingState.selectedElement, element);
     } else {
       // Not a match - deselect previous and select new
       this.matchingState.selectedElement.classList.remove("selected");
-      this.matchingState.selectedElement.style.webkitAnimation = "";
-      this.matchingState.selectedElement.style.animation = "";
       this.matchingState.selectedElement = element;
-      // Force reflow for new selection
-      element.classList.remove("selected");
-      void element.offsetWidth; // Trigger reflow
       element.classList.add("selected");
-      element.style.webkitAnimation = "pulse-glow 0.8s ease-in-out infinite";
-      element.style.animation = "pulse-glow 0.8s ease-in-out infinite";
       this.haptic("light");
       this.playSound("select");
-      console.log("Switched selection to:", element.textContent);
+      console.log("↔ Switched to:", element.textContent);
     }
   }
 
