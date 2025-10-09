@@ -91,6 +91,7 @@ class LetterExplosion {
     this.victorySong = new Audio(songPath);
     this.victorySong.volume = 0.6; // Adjust volume (0.0 to 1.0)
     this.victorySong.preload = "auto";
+    this.victorySongUnlocked = false;
 
     // Handle errors gracefully if file doesn't exist
     this.victorySong.addEventListener("error", (e) => {
@@ -102,7 +103,45 @@ class LetterExplosion {
       this.victorySong = null; // Disable if file not found
     });
 
+    // iOS audio unlock - play silent audio on first user interaction
+    this.unlockVictorySongAudio();
+
     console.log("🎵 Victory song ready:", songPath);
+  }
+
+  unlockVictorySongAudio() {
+    if (!this.victorySong) return;
+
+    const unlockAudio = () => {
+      if (this.victorySongUnlocked) return;
+
+      // Play and immediately pause to unlock audio on iOS
+      const playPromise = this.victorySong.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            this.victorySong.pause();
+            this.victorySong.currentTime = 0;
+            this.victorySongUnlocked = true;
+            console.log("✓ Victory song audio unlocked for iOS");
+          })
+          .catch((e) => {
+            console.log("Victory song unlock attempt:", e.message);
+          });
+      }
+    };
+
+    // Listen for first user interaction to unlock audio
+    const events = ["touchstart", "touchend", "click", "keydown"];
+    events.forEach((event) => {
+      document.addEventListener(
+        event,
+        () => {
+          unlockAudio();
+        },
+        { once: true, passive: true }
+      );
+    });
   }
 
   setupElements() {
@@ -942,14 +981,40 @@ class LetterExplosion {
     this.victorySong.currentTime = 0;
 
     // Play the song
-    this.victorySong
-      .play()
-      .then(() => {
-        console.log("🎵 Playing victory song!");
-      })
-      .catch((error) => {
-        console.log("Could not play victory song:", error.message);
-      });
+    const playPromise = this.victorySong.play();
+
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log("🎵 Playing victory song!");
+        })
+        .catch((error) => {
+          console.log(
+            "⚠️ Victory song play blocked (iOS autoplay policy):",
+            error.message
+          );
+          console.log(
+            "💡 Tip: Tap the screen once after loading to enable audio on iOS"
+          );
+
+          // Try to unlock and play again after a moment
+          setTimeout(() => {
+            if (!this.victorySongUnlocked) {
+              const retryPromise = this.victorySong.play();
+              if (retryPromise !== undefined) {
+                retryPromise
+                  .then(() => {
+                    console.log("🎵 Victory song playing after retry!");
+                    this.victorySongUnlocked = true;
+                  })
+                  .catch(() => {
+                    console.log("Still blocked - user interaction needed");
+                  });
+              }
+            }
+          }, 500);
+        });
+    }
   }
 
   displayFloatingMessage(text, color, isLarge = false) {
@@ -1477,8 +1542,8 @@ class LetterExplosion {
       const y = centerY + offsetY;
       const size = 2 + Math.random() * 5; // 2-7px
       const twinkleDuration = 1.5 + Math.random() * 2.5; // 1.5-4s twinkle
-      const fadeDelay = 35 + Math.random() * 10; // Start fading after 35-45s (30s longer!)
-      const fadeDuration = 3 + Math.random() * 4; // Fade over 3-7s
+      const fadeDelay = 270 + Math.random() * 30; // Start fading after 4.5-5 minutes!
+      const fadeDuration = 5 + Math.random() * 5; // Fade over 5-10s
 
       const starColor =
         colorPalette[Math.floor(Math.random() * colorPalette.length)];
