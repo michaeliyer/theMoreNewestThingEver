@@ -66,6 +66,10 @@ class LetterExplosion {
     // Track positioned elements to prevent overlap
     this.positionedElements = [];
 
+    // Victory song audio element
+    this.victorySong = null;
+    this.initVictorySong();
+
     this.init();
   }
 
@@ -76,6 +80,29 @@ class LetterExplosion {
     } else {
       this.setupElements();
     }
+  }
+
+  initVictorySong() {
+    // Create audio element for victory song
+    // You can replace 'victory-song.mp3' with your own MP3 file path
+    // Or use a URL: 'https://example.com/your-song.mp3'
+    const songPath = "victory-song.mp3"; // <<< PUT YOUR MP3 FILE HERE
+
+    this.victorySong = new Audio(songPath);
+    this.victorySong.volume = 0.6; // Adjust volume (0.0 to 1.0)
+    this.victorySong.preload = "auto";
+
+    // Handle errors gracefully if file doesn't exist
+    this.victorySong.addEventListener("error", (e) => {
+      console.log(
+        "Victory song not found. To add a victory song:",
+        "\n1. Add an MP3 file named 'victory-song.mp3' to your project folder",
+        "\n2. Or update the 'songPath' in initVictorySong() to point to your MP3"
+      );
+      this.victorySong = null; // Disable if file not found
+    });
+
+    console.log("🎵 Victory song ready:", songPath);
   }
 
   setupElements() {
@@ -899,6 +926,30 @@ class LetterExplosion {
     this.playSound("victory");
     this.speak(message);
     this.createVictoryConfetti();
+
+    // Play victory song after fanfare (2 second delay)
+    setTimeout(() => {
+      this.playVictorySong();
+    }, 2000);
+  }
+
+  playVictorySong() {
+    if (!this.settings.soundEnabled) return;
+    if (!this.victorySong) return;
+
+    // Stop any currently playing song and restart from beginning
+    this.victorySong.pause();
+    this.victorySong.currentTime = 0;
+
+    // Play the song
+    this.victorySong
+      .play()
+      .then(() => {
+        console.log("🎵 Playing victory song!");
+      })
+      .catch((error) => {
+        console.log("Could not play victory song:", error.message);
+      });
   }
 
   displayFloatingMessage(text, color, isLarge = false) {
