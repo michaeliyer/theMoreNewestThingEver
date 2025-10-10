@@ -43,7 +43,7 @@ class LetterExplosion {
         "You've phased into success!",
         "Lunar luck is shining!",
         "Moonstruck Match!",
-        "Moon Match!",
+        "Full Moon Fever!",
       ],
       sun: [
         "Blazing hot match!",
@@ -63,12 +63,13 @@ class LetterExplosion {
         "You've launched the perfect match!",
         "Mission Accomplished!",
         "That match was stellar speed!",
-        "Rocket Match!",
+        "Climb Aboard!!!",
       ],
       clown: [
         "You matched like a true trickster!",
         "A laughably good match!",
         "That was circus-level sharp!",
+        "Join The Circus!!",
       ],
       alien: [
         "Out of this galaxy match!",
@@ -79,12 +80,13 @@ class LetterExplosion {
         "You reeled that one in!",
         "Swimming in success!",
         "That was a fin-tastic match!",
+        "Oceanic Match!!",
       ],
       octopus: [
         "Eight arms, infinite skills!",
         "You wrapped that up tight!",
         "Octo-match complete!",
-        "Octo-match complete!",
+        "Over the top!!",
       ],
     };
 
