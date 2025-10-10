@@ -82,32 +82,32 @@ class LetterExplosion {
     }
   }
 
-  initVictorySong() {
-    // Create audio element for victory song
-    // You can replace 'victory-song.mp3' with your own MP3 file path
-    // Or use a URL: 'https://example.com/your-song.mp3'
-    const songPath = "victory-song.mp3"; // <<< PUT YOUR MP3 FILE HERE
+  // initVictorySong() {
+  //   // Create audio element for victory song
+  //   // You can replace 'victory-song.mp3' with your own MP3 file path
+  //   // Or use a URL: 'https://example.com/your-song.mp3'
+  //   const songPath = "victory-song.mp3"; // <<< PUT YOUR MP3 FILE HERE
 
-    this.victorySong = new Audio(songPath);
-    this.victorySong.volume = 0.6; // Adjust volume (0.0 to 1.0)
-    this.victorySong.preload = "auto";
-    this.victorySongUnlocked = false;
+  //   this.victorySong = new Audio(songPath);
+  //   this.victorySong.volume = 0.6; // Adjust volume (0.0 to 1.0)
+  //   this.victorySong.preload = "auto";
+  //   this.victorySongUnlocked = false;
 
-    // Handle errors gracefully if file doesn't exist
-    this.victorySong.addEventListener("error", (e) => {
-      console.log(
-        "Victory song not found. To add a victory song:",
-        "\n1. Add an MP3 file named 'victory-song.mp3' to your project folder",
-        "\n2. Or update the 'songPath' in initVictorySong() to point to your MP3"
-      );
-      this.victorySong = null; // Disable if file not found
-    });
+  //   // Handle errors gracefully if file doesn't exist
+  //   this.victorySong.addEventListener("error", (e) => {
+  //     console.log(
+  //       "Victory song not found. To add a victory song:",
+  //       "\n1. Add an MP3 file named 'victory-song.mp3' to your project folder",
+  //       "\n2. Or update the 'songPath' in initVictorySong() to point to your MP3"
+  //     );
+  //     this.victorySong = null; // Disable if file not found
+  //   });
 
-    // iOS audio unlock - play silent audio on first user interaction
-    this.unlockVictorySongAudio();
+  //   // iOS audio unlock - play silent audio on first user interaction
+  //   this.unlockVictorySongAudio();
 
-    console.log("🎵 Victory song ready:", songPath);
-  }
+  //   console.log("🎵 Victory song ready:", songPath);
+  // }
 
   unlockVictorySongAudio() {
     if (!this.victorySong) return;

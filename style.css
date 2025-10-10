@@ -66,6 +66,10 @@ body::before {
     transform: translateZ(0); /* Force hardware acceleration */
     -webkit-transform: translateZ(0);
   }
+
+  h1 {
+    font-size: 2rem;
+  }
 }
 
 /* iPad-specific optimizations */
@@ -90,6 +94,10 @@ body::before {
     -webkit-transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
+  }
+
+  h1 {
+    font-size: 2.5rem;
   }
 }
 
