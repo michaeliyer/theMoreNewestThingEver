@@ -22,17 +22,80 @@ class LetterExplosion {
       matchedPairs: new Set(),
       totalPairs: 0,
     };
-    this.matchMessages = [
+    // Custom messages for each emoji match
+    this.customMatchMessages = {
+      planet: [
+        "Outta This World!",
+        "Planetary Perfection Achieved!",
+        "You just orbited a match!",
+        "Planet Match!",
+      ],
+      dog: [
+        "A Barking Success!",
+        "Ruff Ruff!",
+        "Good Doggy!",
+        "Woof Woof!",
+        "Doggone Good Match!",
+        "Dog Match!",
+      ],
+      moon: [
+        "That match is moonstruck!",
+        "You've phased into success!",
+        "Lunar luck is shining!",
+        "Moonstruck Match!",
+        "Moon Match!",
+      ],
+      sun: [
+        "Blazing hot match!",
+        "You've lit up the game!",
+        "Solar flare of victory!",
+        "Sunny Side Up!!",
+        "Sun Match!",
+      ],
+      sparkle: [
+        "That was dazzling!",
+        "Sparkle success!",
+        "Shining match, superstar!",
+        "Starstruck Match!",
+        "Sparkle Match!",
+      ],
+      rocket: [
+        "You've launched the perfect match!",
+        "Mission Accomplished!",
+        "That match was stellar speed!",
+        "Rocket Match!",
+      ],
+      clown: [
+        "You matched like a true trickster!",
+        "A laughably good match!",
+        "That was circus-level sharp!",
+      ],
+      alien: [
+        "Out of this galaxy match!",
+        "Abducted a perfect pair!",
+        "You've got alien instincts!",
+      ],
+      fish: [
+        "You reeled that one in!",
+        "Swimming in success!",
+        "That was a fin-tastic match!",
+      ],
+      octopus: [
+        "Eight arms, infinite skills!",
+        "You wrapped that up tight!",
+        "Octo-match complete!",
+        "Octo-match complete!",
+      ],
+    };
+
+    // Fallback messages for any emojis without custom messages
+    this.defaultMatchMessages = [
       "You found a match! ✨",
       "Perfect pair! 🌟",
       "Great job! 💫",
       "Match made! ⭐",
       "Brilliant! 🎯",
       "Awesome! 🔥",
-      "Spectacular! 💥",
-      "Amazing! 🌈",
-      "Wonderful! 🎨",
-      "Fantastic! 🚀",
     ];
     this.victoryMessages = [
       "🎉 You matched them all! 🎉",
@@ -899,8 +962,8 @@ class LetterExplosion {
     element1.classList.add("matched");
     element2.classList.add("matched");
 
-    // Show match message
-    this.showMatchMessage();
+    // Show match message with custom message for this emoji
+    this.showMatchMessage(matchId);
 
     // Explode both elements with stardust!
     setTimeout(() => {
@@ -949,11 +1012,18 @@ class LetterExplosion {
     }, 2500); // After explosion animation
   }
 
-  showMatchMessage() {
-    const message =
-      this.matchMessages[Math.floor(Math.random() * this.matchMessages.length)];
+  showMatchMessage(matchId) {
+    // Get custom messages for this emoji, or use default if not found
+    const messages =
+      this.customMatchMessages[matchId] || this.defaultMatchMessages;
+
+    // Select a random message from the array
+    const message = messages[Math.floor(Math.random() * messages.length)];
+
     this.displayFloatingMessage(message, "#4ecdc4");
     this.speak(message);
+
+    console.log(`✨ ${matchId} match:`, message);
   }
 
   showVictoryMessage() {
