@@ -28,7 +28,6 @@ class LetterExplosion {
         "Outta This World!",
         "Planetary Perfection Achieved!",
         "You just orbited a match!",
-        "Planet Match!",
       ],
       dog: [
         "A Barking Success!",
@@ -36,7 +35,6 @@ class LetterExplosion {
         "Good Doggy!",
         "Woof Woof!",
         "Doggone Good Match!",
-        "Dog Match!",
       ],
       moon: [
         "That match is moonstruck!",
@@ -57,7 +55,7 @@ class LetterExplosion {
         "Sparkle success!",
         "Shining match, superstar!",
         "Starstruck Match!",
-        "Sparkle Match!",
+        "My Shades Please!",
       ],
       rocket: [
         "You've launched the perfect match!",
@@ -80,13 +78,27 @@ class LetterExplosion {
         "You reeled that one in!",
         "Swimming in success!",
         "That was a fin-tastic match!",
-        "Oceanic Match!!",
+        "You're Gilling This!!",
       ],
       octopus: [
         "Eight arms, infinite skills!",
         "You wrapped that up tight!",
         "Octo-match complete!",
         "Over the top!!",
+      ],
+      giraffe: [
+        "Neck and neck!",
+        "Tall win, champ!",
+        "Sky-high score!",
+        "You stand tall!",
+        "Towering success!",
+      ],
+      tennis: [
+        "Too Good!",
+        "Racket Clap!",
+        "No Bagels For You!",
+        "Ad In!",
+        "Forty Love!",
       ],
     };
 
@@ -151,6 +163,7 @@ class LetterExplosion {
     // Create audio element for victory song
     // You can replace 'victory-song.mp3' with your own MP3 file path
     // Or use a URL: 'https://example.com/your-song.mp3'
+
     const songPath = "victory-song.mp3"; // <<< PUT YOUR MP3 FILE HERE
 
     this.victorySong = new Audio(songPath);
